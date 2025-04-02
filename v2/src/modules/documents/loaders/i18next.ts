@@ -2,8 +2,9 @@ import {
   LoaderOptions,
 } from "@medusajs/framework/types"
 
-import i18next  from 'i18next';
+import i18next from 'i18next';
 import path from "path";
+import { pathToFileURL } from "url";
 
 type ModuleOptions = {
   document_language?: string
@@ -17,7 +18,9 @@ export default async function i18nextLoader({
 
   try {
     const defaultTranslationsPath = path.resolve(__dirname, `../assets/i18n/locales/en/translation.json`);
-    const { default: data } = await import(defaultTranslationsPath, { with: { type: "json" } });
+    const { default: data } = await import(pathToFileURL(defaultTranslationsPath).href, {
+      with: { type: "json" }
+    });
 
     await i18next
       .init({
@@ -36,7 +39,6 @@ export default async function i18nextLoader({
   } catch (error) {
     console.error('Error initializing i18next:', error);
   }
-  
 
   try {
     const configLanguage = options?.document_language
@@ -45,7 +47,10 @@ export default async function i18nextLoader({
     } else {
       console.info(`Language is configured as ${configLanguage}`)
       const translationPath = path.resolve(__dirname, `../assets/i18n/locales/${configLanguage}/translation.json`);
-      const translations = await import(translationPath);
+      const { default: translations } = await import(pathToFileURL(translationPath).href, {
+        with: { type: "json" }
+      });
+
       i18next.addResourceBundle(
         configLanguage,
         'translation',
